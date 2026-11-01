@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b14">
+
+  <title>EGG ALLERGY</title>
+
+  <link rel="stylesheet" href="./style.css">
+
+  <script defer src="./api.js"></script>
+  <script defer src="./search.js"></script>
+  <script defer src="./starfield.js"></script>
+</head>
+
+<body>
+  <canvas id="starfield",aria-hidden="true"></canvas>
+
+
+  <header class="site-header">
+    <a class="brand" href="./index.html" aria-label="ORBIT 홈">
+      <span class="brand-symbol" aria-hidden="true">◎</span>
+      EGG ALLERGY
+    </a>
+
+    <a class="nav-link" href="./admin.html">마스터 컨트롤</a>
+  </header>
+
+  <main class="search-page">
+    <section class="hero">
+      <span class="eyebrow">DATABASE</span>
+
+      <h1>EGG ALLERGY<br><span>계란 알레르기</span></h1>
+
+      <p class="hero-description">
+        계란 알레르기에 대해 무엇을 알고 싶나요?
+      </p>
+
+      <form
+  id="searchForm"
+  class="search-form"
+  role="search"
+>
+  <label class="sr-only" for="searchInput">
+    음식 검색
+  </label>
+
+  <span class="search-icon" aria-hidden="true">⌕</span>
+
+  <input
+    id="searchInput"
+    type="search"
+    placeholder="어떤 음식이 궁금한가요?"
+    autocomplete="off"
+    maxlength="100"
+    required
+
+    role="combobox"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-controls="searchSuggestions"
+  >
+
+  <button
+    id="searchButton"
+    class="search-submit"
+    type="submit"
+  >
+    <span class="sr-only">검색</span>
+    <span aria-hidden="true">↑</span>
+  </button>
+
+  <!-- 입력 중 표시되는 추천 검색어 -->
+  <div
+    id="suggestionPanel"
+    class="suggestion-panel"
+    hidden
+  >
+    <div class="suggestion-heading">
+      <span>Related</span>
+      <span>Select or Enter</span>
+    </div>
+
+    <div
+      id="searchSuggestions"
+      role="listbox"
+      aria-label="추천 음식"
+    ></div>
+  </div>
+</form>
+
+
+      <div class="search-meta">
+        <span id="connectionStatus" role="status">
+          Loading Data
+        </span>
+
+        <button id="refreshButton" class="text-button" type="button">
+          Refresh
+        </button>
+      </div>
+    </section>
+
+    <section
+      id="results"
+      class="results"
+      aria-live="polite"
+      aria-label="검색 결과"
+      hidden
+    >
+      <div class="section-heading">
+        <span class="eyebrow">이거인가요?</span>
+        <span id="resultCount" class="muted"></span>
+      </div>
+
+      <article id="bestResult" class="best-card" hidden>
+        <div class="result-topline">
+          <span class="result-caption">Best Related</span>
+          <span id="resultGrade" class="grade-badge"></span>
+          <p id="resultGradeDescription" class="grade-description"></p>
+        </div>
+
+        <h2 id="resultName"></h2>
+
+        <p id="resultNote" class="result-note"></p>
+
+        <div id="resultTags" class="tag-list"></div>
+
+        <p class="result-disclaimer">
+          모든 음식은 귀납적으로 측정되었습니다. | Every food has investigated by inductive reasoning
+        </p>
+      </article>
+
+      <div id="emptyResult" class="empty-card" hidden>
+        <span class="empty-symbol" aria-hidden="true">✧</span>
+        <h2>데이터베이스가 존재하지 않음.</h2>
+        <p>잘못 입력하신건가요?</p>
+      </div>
+
+      <section
+        id="relatedSection"
+        class="related-section"
+        aria-labelledby="relatedTitle"
+        hidden
+      >
+        <h3 id="relatedTitle">다른 건?</h3>
+        <div id="relatedList" class="related-list"></div>
+      </section>
+    </section>
+  </main>
+
+</body>
+</html>

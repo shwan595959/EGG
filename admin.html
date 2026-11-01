@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b14">
+
+  <title>EGG ALLERGY - DATABASE</title>
+
+  <link rel="stylesheet" href="./style.css">
+
+  <script defer src="./api.js"></script>
+  <script defer src="./admin.js"></script>
+  <script defer src="./starfield.js"></script>
+</head>
+
+<body>
+    <canvas id="starfield",aria-hidden="true"></canvas>
+
+
+  <header class="site-header">
+    <a class="brand" href="./index.html">
+      <span class="brand-symbol" aria-hidden="true">◎</span>
+      EGG ALLERGY
+    </a>
+
+    <a class="nav-link" href="./index.html">돌아가기</a>
+  </header>
+
+  <main class="admin-page">
+    <section class="admin-heading">
+      <span class="eyebrow">EDITOR WORKSPACE</span>
+      <h1>THE DATABASE</h1>
+      <p class="muted">
+        수정사항이 있나요?
+      </p>
+    </section>
+
+    <p id="adminStatus" class="status-message" role="status"></p>
+
+    <section id="loginPanel" class="login-panel">
+      <div class="panel-icon" aria-hidden="true">✧</div>
+
+      <h2>Access Verification</h2>
+
+      <p class="muted">
+        Enter the Password
+      </p>
+
+      <form id="loginForm" class="login-form">
+        <label class="sr-only" for="passwordInput">
+          PW
+        </label>
+
+        <input
+          id="passwordInput"
+          type="password"
+          placeholder="PW"
+          autocomplete="current-password"
+          maxlength="1024"
+          required
+        >
+
+        <button id="loginButton" class="primary-button" type="submit">
+          Submit
+        </button>
+      </form>
+
+      <p class="small muted">
+        Access Permission must include a request.
+      </p>
+    </section>
+
+    <section id="editorPanel" hidden>
+      <div class="editor-toolbar">
+        <div class="toolbar-group">
+          <button id="addButton" class="primary-button" type="button">
+            + New Row
+          </button>
+
+          <button id="reloadButton" class="secondary-button" type="button">
+            Reload
+          </button>
+
+          <div class="table-sort-controls">
+  <label for="tableSort">Sort by</label>
+
+  <select id="tableSort" class="table-sort-select">
+    <option value="risk-desc">Upper Level</option>
+    <option value="risk-asc">Bottom Level</option>
+    <option value="name-asc">Name</option>
+  </select>
+
+  <button
+    id="applySortButton"
+    class="secondary-button"
+    type="button"
+  >
+    Apply
+  </button>
+</div>
+
+        </div>
+
+        <div class="toolbar-group">
+          <span id="sessionInfo" class="session-info"></span>
+
+          <button id="lockButton" class="secondary-button" type="button">
+            Lock
+          </button>
+        </div>
+      </div>
+
+      <div class="table-help">
+        <span>Aliases and Tags are distinguished by Comma(,)</span>
+        <span>Please save each row.</span>
+      </div>
+
+      <div
+        class="table-wrap"
+        role="region"
+        aria-label="Scroll Enabled"
+        tabindex="0"
+      >
+        <table class="food-table">
+          <thead>
+            <tr>
+              <th scope="col" class="number-column">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Rank</th>
+              <th scope="col">Aliases</th>
+              <th scope="col">Tag</th>
+              <th scope="col">Note</th>
+              <th scope="col">Duty</th>
+            </tr>
+          </thead>
+
+          <tbody id="foodTableBody"></tbody>
+        </table>
+      </div>
+
+      <p id="tableSummary" class="small muted"></p>
+    </section>
+  </main>
+</body>
+</html>
