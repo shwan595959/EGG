@@ -40,8 +40,18 @@
 
     clearInterval(sessionTimer);
 
-    tbody.replaceChildren();
+        tbody.replaceChildren();
+
+    // 관리자 잠금 또는 세션 만료 시 제안 내용 제거
+    $("suggestionsTableBody").replaceChildren();
+
+    $("suggestionsStatus").textContent = "";
+    $("suggestionsStatus").classList.remove("error");
+
+    $("suggestionsSummary").textContent = "";
+
     $("editorPanel").hidden = true;
+
     $("loginPanel").hidden = false;
     $("passwordInput").value = "";
 
@@ -106,7 +116,7 @@
 
       const placeholder = document.createElement("option");
       placeholder.value = "";
-      placeholder.textContent = "선택";
+      placeholder.textContent = "Select";
       control.append(placeholder);
 
       for (const grade of ["위험", "경고", "주의", "안전"]) {
@@ -515,6 +525,288 @@ $("applySortButton").addEventListener(
   sortTableRows
 );
 
+  // ──────────────────────────────
+  // 음식 제안 목록
+  // ──────────────────────────────
+
+  const suggestionsBody = $("suggestionsTableBody");
+
+  let suggestionsLoading = false;
+  let suggestionsDeleting = false;
+
+  const suggestionDateFormatter = new Intl.DateTimeFormat(
+    "ko-KR",
+    {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "Asia/Seoul",
+    }
+  );
+
+  function setSuggestionsStatus(message, isError = false) {
+    const status = $("suggestionsStatus");
+
+    status.textContent = message;
+    status.classList.toggle("error", isError);
+  }
+
+  function updateSuggestionsControls() {
+    $("reloadSuggestionsButton").disabled =
+      suggestionsLoading || suggestionsDeleting;
+
+    suggestionsBody.querySelectorAll(
+      'button[data-action="complete-suggestion"]'
+    ).forEach((button) => {
+      button.disabled =
+        suggestionsLoading || suggestionsDeleting;
+    });
+  }
+
+  function updateSuggestionsSummary() {
+    const count = suggestionsBody.querySelectorAll(
+      "tr[data-suggestion-id]"
+    ).length;
+
+    $("suggestionsSummary").textContent =
+      `Items: ${count}`;
+  }
+
+  function showSuggestionsEmpty() {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+
+    cell.colSpan = 4;
+    cell.textContent = "No suggestions";
+
+    row.append(cell);
+    suggestionsBody.replaceChildren(row);
+  }
+
+  function createSuggestionRow(suggestion) {
+    const row = document.createElement("tr");
+
+    row.dataset.suggestionId = suggestion.id;
+    row.dataset.suggestionName = suggestion.name ?? "";
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = suggestion.name ?? "";
+
+    const noteCell = document.createElement("td");
+    noteCell.textContent =
+      suggestion.note?.trim() || "None";
+
+    const dateCell = document.createElement("td");
+    const date = new Date(suggestion.created_at);
+
+    dateCell.textContent = Number.isNaN(date.getTime())
+      ? "-"
+      : suggestionDateFormatter.format(date);
+
+    const actionCell = document.createElement("td");
+
+    const completeButton = document.createElement("button");
+    completeButton.type = "button";
+    completeButton.className = "row-button";
+    completeButton.dataset.action = "complete-suggestion";
+    completeButton.textContent = "Duty Complete";
+
+    completeButton.setAttribute(
+      "aria-label",
+      `${suggestion.name ?? "Item"} processed`
+    );
+
+    actionCell.append(completeButton);
+
+    row.append(
+      nameCell,
+      noteCell,
+      dateCell,
+      actionCell
+    );
+
+    return row;
+  }
+
+  async function loadSuggestions() {
+    if (
+      !requireSession() ||
+      suggestionsLoading ||
+      suggestionsDeleting
+    ) {
+      return;
+    }
+
+    const currentToken = token;
+
+    suggestionsLoading = true;
+    updateSuggestionsControls();
+
+    setSuggestionsStatus(
+      "음식 제안을 불러오는 중입니다."
+    );
+
+    try {
+      const result = await FoodAPI.listSuggestions(
+        currentToken
+      );
+
+      // 이전 세션의 응답은 표시하지 않음
+      if (
+        token !== currentToken ||
+        !requireSession()
+      ) {
+        return;
+      }
+
+      if (!Array.isArray(result?.suggestions)) {
+        throw new Error(
+          "Server Res. Undefined"
+        );
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      for (const suggestion of result.suggestions) {
+        fragment.append(
+          createSuggestionRow(suggestion)
+        );
+      }
+
+      suggestionsBody.replaceChildren(fragment);
+
+      if (result.suggestions.length === 0) {
+        showSuggestionsEmpty();
+      }
+
+      updateSuggestionsSummary();
+
+      setSuggestionsStatus(
+        "Data Loaded"
+      );
+    } catch (error) {
+      if (token !== currentToken) return;
+
+      if (error.status === 401) {
+        lockEditor(
+          "Expired Access"
+        );
+      } else {
+        setSuggestionsStatus(error.message, true);
+      }
+    } finally {
+      suggestionsLoading = false;
+      updateSuggestionsControls();
+    }
+  }
+
+  async function completeSuggestion(row) {
+    if (
+      !requireSession() ||
+      suggestionsLoading ||
+      suggestionsDeleting
+    ) {
+      return;
+    }
+
+    const id = row.dataset.suggestionId;
+    const name = row.dataset.suggestionName;
+
+    if (!id) return;
+
+    const confirmed = confirm(
+      `‘${name}’ Registered?\n\n` +
+      "This item is permanently removed.\n" +
+      "The registered data won't be removed."
+    );
+
+    if (!confirmed) return;
+
+    const currentToken = token;
+    const button = row.querySelector("button");
+
+    suggestionsDeleting = true;
+    updateSuggestionsControls();
+
+    button.textContent = "Processing";
+
+    setSuggestionsStatus(
+      "Sug. Prcs."
+    );
+
+    try {
+      const result = await FoodAPI.completeSuggestion(
+        id,
+        currentToken
+      );
+
+      if (
+        token !== currentToken ||
+        !requireSession()
+      ) {
+        return;
+      }
+
+      if (result?.success !== true) {
+        throw new Error(
+          "Result cannot be checked."
+        );
+      }
+
+      // 서버에서 삭제한 뒤에만 화면에서도 제거
+      row.remove();
+
+      if (
+        !suggestionsBody.querySelector(
+          "tr[data-suggestion-id]"
+        )
+      ) {
+        showSuggestionsEmpty();
+      }
+
+      updateSuggestionsSummary();
+
+      setSuggestionsStatus(
+        `‘${name}’  completely processed`
+      );
+    } catch (error) {
+      if (token !== currentToken) return;
+
+      if (error.status === 401) {
+        lockEditor(
+          "Expired access"
+        );
+      } else {
+        setSuggestionsStatus(error.message, true);
+      }
+    } finally {
+      suggestionsDeleting = false;
+      button.textContent = "Complete";
+      updateSuggestionsControls();
+    }
+  }
+
+  $("reloadSuggestionsButton").addEventListener(
+    "click",
+    loadSuggestions
+  );
+
+  suggestionsBody.addEventListener("click", (event) => {
+    const button = event.target.closest(
+      'button[data-action="complete-suggestion"]'
+    );
+
+    if (!button) return;
+
+    const row = button.closest(
+      "tr[data-suggestion-id]"
+    );
+
+    if (row) {
+      completeSuggestion(row);
+    }
+  });
+
+
 
   $("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -555,6 +847,7 @@ $("applySortButton").addEventListener(
       );
 
       await loadTable();
+      await loadSuggestions();
     } catch (error) {
       passwordInput.value = "";
       setStatus(error.message, true);
@@ -633,7 +926,11 @@ $("applySortButton").addEventListener(
       'tr[data-busy="true"]'
     );
 
-    if (hasUnsavedChanges() || busy) {
+        if (
+      hasUnsavedChanges() ||
+      busy ||
+      suggestionsDeleting
+    ) {
       event.preventDefault();
       event.returnValue = "";
     }
