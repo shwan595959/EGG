@@ -212,8 +212,23 @@ const gradeDescriptions = {
         ? `${matched.length}개의 검색 결과`
         : "No Result";
 
-    if (matched.length === 0) return;
+    if (matched.length === 0) {
+  const nameField = $("suggestionName");
+  const noteField = $("suggestionNote");
+  const status = $("suggestionStatus");
 
+  // 새로운 검색어일 때만 제안 입력란 초기화
+  if (nameField.dataset.query !== lastQuery) {
+    nameField.value = lastQuery;
+    nameField.dataset.query = lastQuery;
+
+    noteField.value = "";
+    status.textContent = "";
+    status.classList.remove("error");
+  }
+
+  return;
+}
     const best = matched[0].food;
 
     $("resultName").textContent = best.name;
@@ -494,5 +509,86 @@ $("refreshButton").addEventListener("click", () => {
 });
 
 loadFoods();
+
+// ──────────────────────────────
+// 음식 제안 제출
+// ──────────────────────────────
+
+let suggestionSubmitting = false;
+
+$("foodSuggestionForm").addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    if (suggestionSubmitting) return;
+
+    const nameField = $("suggestionName");
+    const noteField = $("suggestionNote");
+    const button = $("suggestionSubmitButton");
+    const status = $("suggestionStatus");
+
+    const name = nameField.value.trim();
+    const note = noteField.value.trim();
+
+    status.classList.remove("error");
+
+    if (!name || name.length > 100) {
+      status.textContent =
+        "음식 이름을 1~100자로 입력해 주세요.";
+
+      status.classList.add("error");
+      nameField.focus();
+      return;
+    }
+
+    if (note.length > 1000) {
+      status.textContent =
+        "추가 설명은 1000자 이하로 입력해 주세요.";
+
+      status.classList.add("error");
+      noteField.focus();
+      return;
+    }
+
+    suggestionSubmitting = true;
+
+    button.disabled = true;
+    nameField.disabled = true;
+    noteField.disabled = true;
+
+    button.textContent = "보내는 중…";
+    status.textContent = "";
+
+    try {
+      await FoodAPI.suggestFood(name, note);
+
+      status.textContent =
+        `‘${name}’ 제안을 보냈습니다. 검토 후 등록할게요.`;
+
+      // 제출 중 다른 검색을 했으면 새 입력 내용은 유지
+      if (
+        nameField.value.trim() === name &&
+        noteField.value.trim() === note
+      ) {
+        noteField.value = "";
+      }
+    } catch (error) {
+      status.textContent =
+        "제안을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.";
+
+      status.classList.add("error");
+    } finally {
+      suggestionSubmitting = false;
+
+      button.disabled = false;
+      nameField.disabled = false;
+      noteField.disabled = false;
+
+      button.textContent = "Submit";
+    }
+  }
+);
+
 
 })();
