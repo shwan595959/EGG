@@ -134,10 +134,66 @@
       </article>
 
       <div id="emptyResult" class="empty-card" hidden>
-        <span class="empty-symbol" aria-hidden="true">✧</span>
-        <h2>데이터베이스가 존재하지 않음.</h2>
-        <p>잘못 입력하신건가요?</p>
+  <span class="empty-symbol" aria-hidden="true">✧</span>
+
+  <h2>데이터가 없어요.</h2>
+
+  <p>잘못 입력하신건가요?</p>
+
+  <div class="food-suggestion">
+    <h3>새로운 항목을 제안할 수 있어요.</h3>
+
+    <p class="suggestion-description">
+      제안은 일정 시간 이후 추가됩니다.
+    </p>
+
+    <form id="foodSuggestionForm" class="food-suggestion-form">
+      <div class="suggestion-field">
+        <label for="suggestionName">Item</label>
+
+        <input
+          id="suggestionName"
+          name="name"
+          type="text"
+          placeholder="Name"
+          maxlength="100"
+          required
+        >
       </div>
+
+      <div class="suggestion-field">
+        <label for="suggestionNote">
+          Description <span>Optional</span>
+        </label>
+
+        <textarea
+          id="suggestionNote"
+          name="note"
+          rows="3"
+          maxlength="1000"
+          placeholder="Desc"
+        ></textarea>
+      </div>
+
+      <div class="suggestion-actions">
+        <button
+          id="suggestionSubmitButton"
+          class="primary-button"
+          type="submit"
+        >
+          Submit
+        </button>
+      </div>
+
+      <p
+        id="suggestionStatus"
+        class="suggestion-status"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </form>
+  </div>
+</div>
 
       <section
         id="relatedSection"
@@ -145,7 +201,7 @@
         aria-labelledby="relatedTitle"
         hidden
       >
-        <h3 id="relatedTitle">다른 건?</h3>
+        <h3 id="relatedTitle">다른 것은 무엇이 있나요?</h3>
         <div id="relatedList" class="related-list"></div>
       </section>
     </section>
