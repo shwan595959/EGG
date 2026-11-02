@@ -13,7 +13,7 @@ window.FoodAPI = (() => {
       CONFIG.SUPABASE_PUBLISHABLE_KEY === "YOUR_PUBLISHABLE_KEY"
     ) {
       throw new Error(
-        "api.js에서 Supabase URL과 공개 키를 먼저 설정해 주세요."
+        "Supabase URL과 공개 키를 먼저 설정해 주세요."
       );
     }
   }
@@ -29,7 +29,7 @@ window.FoodAPI = (() => {
       const message =
         data?.error ||
         data?.message ||
-        `요청에 실패했습니다. (${response.status})`;
+        `Req Failed. (${response.status})`;
 
       const error = new Error(message);
       error.status = response.status;
@@ -69,7 +69,7 @@ window.FoodAPI = (() => {
       const page = await parseResponse(response);
 
       if (!Array.isArray(page)) {
-        throw new Error("음식 목록 응답 형식이 올바르지 않습니다.");
+        throw new Error("Response Invalid");
       }
 
       foods.push(...page);
@@ -108,8 +108,36 @@ window.FoodAPI = (() => {
     return parseResponse(response);
   }
 
+  async function suggestFood(name, note) {
+  checkConfig();
+
+  const response = await fetch(
+    `${baseUrl()}/rest/v1/food_suggestions`,
+    {
+      method: "POST",
+
+      headers: {
+        apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY,
+        "Content-Type": "application/json",
+
+        // 제출 내용이나 목록은 반환하지 않습니다.
+        Prefer: "return=minimal",
+      },
+
+      body: JSON.stringify({
+        name,
+        note,
+      }),
+    }
+  );
+
+  await parseResponse(response);
+}
+
+
   return {
     listFoods,
+    suggestFood,
 
     login(password) {
       return adminRequest({
@@ -133,11 +161,27 @@ window.FoodAPI = (() => {
       }, token);
     },
 
-    remove(id, token) {
+        remove(id, token) {
       return adminRequest({
         action: "delete",
         id,
       }, token);
     },
+
+    // 관리자용 음식 제안 조회
+    listSuggestions(token) {
+      return adminRequest({
+        action: "listSuggestions",
+      }, token);
+    },
+
+    // 처리 완료한 제안 삭제
+    completeSuggestion(id, token) {
+      return adminRequest({
+        action: "completeSuggestion",
+        id,
+      }, token);
+    },
   };
 })();
+
