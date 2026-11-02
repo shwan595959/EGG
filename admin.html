@@ -15,7 +15,7 @@
 </head>
 
 <body>
-    <canvas id="starfield",aria-hidden="true"></canvas>
+    <canvas id="starfield" aria-hidden="true"></canvas>
 
 
   <header class="site-header">
@@ -139,7 +139,68 @@
         </table>
       </div>
 
-      <p id="tableSummary" class="small muted"></p>
+            <p id="tableSummary" class="small muted"></p>
+
+      <!-- 방문자가 제출한 음식 제안 -->
+      <section
+        class="admin-suggestions"
+        aria-labelledby="suggestionsHeading"
+      >
+        <div class="editor-toolbar">
+          <div>
+            <h2 id="suggestionsHeading">Suggestions</h2>
+
+            <p class="small muted">
+              Please register items, and complete the duty.
+            </p>
+          </div>
+
+          <button
+            id="reloadSuggestionsButton"
+            class="secondary-button"
+            type="button"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <p
+          id="suggestionsStatus"
+          class="status-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <div
+          class="table-wrap"
+          role="region"
+          aria-label="음식 제안 목록 — 가로 스크롤 가능"
+          tabindex="0"
+        >
+          <table class="food-table suggestions-table">
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Description</th>
+                <th scope="col">Date Suggested</th>
+                <th scope="col">Process</th>
+              </tr>
+            </thead>
+
+            <tbody id="suggestionsTableBody">
+              <tr>
+                <td colspan="4">
+                  Not loaded yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p id="suggestionsSummary" class="small muted"></p>
+      </section>
+    </section>
+
     </section>
   </main>
 </body>
